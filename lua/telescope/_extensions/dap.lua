@@ -103,7 +103,7 @@ local variables = function(opts)
   local frame = dap.session().current_frame
 
   local variables = {}
-  for _, s in pairs(frame.scopes) do
+  for _, s in pairs(frame.scopes or {}) do
     if s.variables then
       for _, v in pairs(s.variables) do
         if v.type ~= '' and v.value ~= '' then
@@ -113,14 +113,15 @@ local variables = function(opts)
     end
   end
 
+  local buf = get_url_buf(frame and frame.source and frame.source.path)
+
   local require_ok, locals = pcall(require, "nvim-treesitter.locals")
   local _, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
   local _, utils = pcall(require, "nvim-treesitter.utils")
   local _, parsers = pcall(require, "nvim-treesitter.parsers")
   local _, queries = pcall(require, "nvim-treesitter.query")
+
   if require_ok then
-    -- TODO(conni2461): I think we need another solution for this. Maybe just create if it doesn't exists yet.
-    local buf = vim.fn.bufnr(frame.source.path)
     if buf ~= -1 then
       local lang =  parsers.get_buf_lang(buf)
       if not parsers.has_parser(lang) or not queries.has_locals(lang) then return end

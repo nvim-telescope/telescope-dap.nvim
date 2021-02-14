@@ -15,6 +15,20 @@ local pickers    = require'telescope.pickers'
 local sorters    = require'telescope.sorters'
 local previewers = require'telescope.previewers'
 
+local function get_url_buf(url)
+  local buf = -1
+  if url then
+    local scheme = url:match('^([a-z]+)://.*')
+    if scheme then
+      buf = vim.uri_to_bufnr(url)
+    else
+      buf = vim.uri_to_bufnr(vim.uri_from_fname(url))
+    end
+    vim.fn.bufload(buf)
+  end
+  return buf
+end
+
 local commands = function(opts)
   opts = opts or {}
 
@@ -166,6 +180,47 @@ local variables = function(opts)
   }):find()
 end
 
+
+local frames = function(opts)
+  opts = opts or {}
+  local session = require'dap'.session()
+
+  if not session or not session.stopped_thread_id then
+    print('Cannot move frame if not stopped')
+    return
+  end
+  local frames = session.threads[session.stopped_thread_id].frames
+
+  pickers.new(opts, {
+    prompt_title = 'Jump to frame',
+    finder    = finders.new_table {
+      results = frames,
+      entry_maker = function(frame)
+        return {
+          value = frame,
+          display = frame.name,
+          ordinal = frame.name,
+          filename = frame.source.path,
+          lnum = frame.line or 1,
+          col = frame.column or 0,
+        }
+      end,
+    },
+    sorter = sorters.get_generic_fuzzy_sorter(),
+    attach_mappings = function(prompt_bufnr)
+      actions.goto_file_selection_edit:replace(function()
+        local entry = actions.get_selected_entry(prompt_bufnr)
+        actions.close(prompt_bufnr)
+
+        session:_frame_set(entry.value)
+      end)
+
+      return true
+    end,
+    previewer = previewers.vimgrep.new(opts),
+  }):find()
+end
+
 return telescope.register_extension {
   setup = function()
     require('dap.ui').pick_one = function(items, prompt, label_fn, cb)
@@ -201,5 +256,6 @@ return telescope.register_extension {
     configurations = configurations,
     list_breakpoints = list_breakpoints,
     variables = variables,
+    frames = frames,
   }
 }

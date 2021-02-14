@@ -147,7 +147,7 @@ local variables = function(opts)
 
           if variables[name] then
             local lnum, col = node:start()
-            variables[name].lnum = lnum + 1 -- Its wrong if we don't do + 1. But i don't understand why
+            variables[name].lnum = lnum + 1 -- Treesitter lines start at 0!
             variables[name].col = col
           end
         end

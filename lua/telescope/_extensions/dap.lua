@@ -12,8 +12,8 @@ local actions    = require'telescope.actions'
 local builtin    = require'telescope.builtin'
 local finders    = require'telescope.finders'
 local pickers    = require'telescope.pickers'
-local sorters    = require'telescope.sorters'
 local previewers = require'telescope.previewers'
+local conf = require('telescope.config').values
 
 local function get_url_buf(url)
   local buf = -1
@@ -44,7 +44,7 @@ local commands = function(opts)
     finder    = finders.new_table {
       results = results
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
+    sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
       actions.goto_file_selection_edit:replace(function()
         local selection = actions.get_selected_entry(prompt_bufnr)
@@ -88,7 +88,7 @@ local configurations = function(opts)
         }
       end,
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
+    sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
       actions.goto_file_selection_edit:replace(function()
         local selection = actions.get_selected_entry(prompt_bufnr)
@@ -175,8 +175,8 @@ local variables = function(opts)
         }
       end
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
-    previewer = previewers.vimgrep.new(opts),
+    sorter = conf.generic_sorter(opts),
+    previewer = conf.grep_previewer(opts),
   }):find()
 end
 
@@ -206,7 +206,7 @@ local frames = function(opts)
         }
       end,
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
+    sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
       actions.goto_file_selection_edit:replace(function()
         local entry = actions.get_selected_entry(prompt_bufnr)
@@ -217,7 +217,7 @@ local frames = function(opts)
 
       return true
     end,
-    previewer = previewers.vimgrep.new(opts),
+    previewer = conf.grep_previewer(opts),
   }):find()
 end
 
@@ -237,7 +237,7 @@ return telescope.register_extension {
             }
           end,
         },
-        sorter = sorters.get_generic_fuzzy_sorter(),
+        sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr)
           actions.goto_file_selection_edit:replace(function()
             local selection = actions.get_selected_entry(prompt_bufnr)

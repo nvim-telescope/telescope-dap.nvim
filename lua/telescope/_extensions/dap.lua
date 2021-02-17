@@ -12,8 +12,22 @@ local actions    = require'telescope.actions'
 local builtin    = require'telescope.builtin'
 local finders    = require'telescope.finders'
 local pickers    = require'telescope.pickers'
-local sorters    = require'telescope.sorters'
 local previewers = require'telescope.previewers'
+local conf = require('telescope.config').values
+
+local function get_url_buf(url)
+  local buf = -1
+  if url then
+    local scheme = url:match('^([a-z]+)://.*')
+    if scheme then
+      buf = vim.uri_to_bufnr(url)
+    else
+      buf = vim.uri_to_bufnr(vim.uri_from_fname(url))
+    end
+    vim.fn.bufload(buf)
+  end
+  return buf
+end
 
 local commands = function(opts)
   opts = opts or {}
@@ -30,7 +44,7 @@ local commands = function(opts)
     finder    = finders.new_table {
       results = results
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
+    sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
       actions.goto_file_selection_edit:replace(function()
         local selection = actions.get_selected_entry(prompt_bufnr)
@@ -74,7 +88,7 @@ local configurations = function(opts)
         }
       end,
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
+    sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
       actions.goto_file_selection_edit:replace(function()
         local selection = actions.get_selected_entry(prompt_bufnr)
@@ -103,7 +117,7 @@ local variables = function(opts)
   local frame = dap.session().current_frame
 
   local variables = {}
-  for _, s in pairs(frame.scopes) do
+  for _, s in pairs(frame.scopes or {}) do
     if s.variables then
       for _, v in pairs(s.variables) do
         if v.type ~= '' and v.value ~= '' then
@@ -113,14 +127,15 @@ local variables = function(opts)
     end
   end
 
+  local buf = get_url_buf(frame and frame.source and frame.source.path)
+
   local require_ok, locals = pcall(require, "nvim-treesitter.locals")
   local _, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
   local _, utils = pcall(require, "nvim-treesitter.utils")
   local _, parsers = pcall(require, "nvim-treesitter.parsers")
   local _, queries = pcall(require, "nvim-treesitter.query")
+
   if require_ok then
-    -- TODO(conni2461): I think we need another solution for this. Maybe just create if it doesn't exists yet.
-    local buf = vim.fn.bufnr(frame.source.path)
     if buf ~= -1 then
       local lang =  parsers.get_buf_lang(buf)
       if not parsers.has_parser(lang) or not queries.has_locals(lang) then return end
@@ -132,7 +147,7 @@ local variables = function(opts)
 
           if variables[name] then
             local lnum, col = node:start()
-            variables[name].lnum = lnum + 1 -- Its wrong if we don't do + 1. But i don't understand why
+            variables[name].lnum = lnum + 1 -- Treesitter lines start at 0!
             variables[name].col = col
           end
         end
@@ -160,8 +175,49 @@ local variables = function(opts)
         }
       end
     },
-    sorter = sorters.get_generic_fuzzy_sorter(),
-    previewer = previewers.vimgrep.new(opts),
+    sorter = conf.generic_sorter(opts),
+    previewer = conf.grep_previewer(opts),
+  }):find()
+end
+
+
+local frames = function(opts)
+  opts = opts or {}
+  local session = require'dap'.session()
+
+  if not session or not session.stopped_thread_id then
+    print('Cannot move frame if not stopped')
+    return
+  end
+  local frames = session.threads[session.stopped_thread_id].frames
+
+  pickers.new(opts, {
+    prompt_title = 'Jump to frame',
+    finder    = finders.new_table {
+      results = frames,
+      entry_maker = function(frame)
+        return {
+          value = frame,
+          display = frame.name,
+          ordinal = frame.name,
+          filename = frame.source.path,
+          lnum = frame.line or 1,
+          col = frame.column or 0,
+        }
+      end,
+    },
+    sorter = conf.generic_sorter(opts),
+    attach_mappings = function(prompt_bufnr)
+      actions.goto_file_selection_edit:replace(function()
+        local entry = actions.get_selected_entry(prompt_bufnr)
+        actions.close(prompt_bufnr)
+
+        session:_frame_set(entry.value)
+      end)
+
+      return true
+    end,
+    previewer = conf.grep_previewer(opts),
   }):find()
 end
 
@@ -181,7 +237,7 @@ return telescope.register_extension {
             }
           end,
         },
-        sorter = sorters.get_generic_fuzzy_sorter(),
+        sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr)
           actions.goto_file_selection_edit:replace(function()
             local selection = actions.get_selected_entry(prompt_bufnr)
@@ -200,5 +256,6 @@ return telescope.register_extension {
     configurations = configurations,
     list_breakpoints = list_breakpoints,
     variables = variables,
+    frames = frames,
   }
 }

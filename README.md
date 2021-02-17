@@ -20,6 +20,16 @@ require('telescope').load_extension('dap')
 
 somewhere after your require('telescope').setup() call.
 
+## Available commands
+
+```viml
+:Telescope dap commands
+:Telescope dap configurations
+:Telescope dap list_breakpoints
+:Telescope dap variables
+:Telescope dap frames
+```
+
 ## Available functions
 
 ```lua
@@ -27,4 +37,5 @@ require'telescope'.extensions.dap.commands{}
 require'telescope'.extensions.dap.configurations{}
 require'telescope'.extensions.dap.list_breakpoints{}
 require'telescope'.extensions.dap.variables{}
+require'telescope'.extensions.dap.frames{}
 ```

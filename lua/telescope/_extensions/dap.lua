@@ -8,11 +8,12 @@ if not has_dap then
   error('This plugins requires mfussenegger/nvim-dap')
 end
 
-local actions    = require'telescope.actions'
-local builtin    = require'telescope.builtin'
-local finders    = require'telescope.finders'
-local pickers    = require'telescope.pickers'
-local previewers = require'telescope.previewers'
+local actions      = require'telescope.actions'
+local action_state = require'telescope.actions.state'
+local builtin      = require'telescope.builtin'
+local finders      = require'telescope.finders'
+local pickers      = require'telescope.pickers'
+local previewers   = require'telescope.previewers'
 local conf = require('telescope.config').values
 
 local function get_url_buf(url)
@@ -46,8 +47,8 @@ local commands = function(opts)
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
-      actions.goto_file_selection_edit:replace(function()
-        local selection = actions.get_selected_entry(prompt_bufnr)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
         dap[selection.value]()
@@ -90,8 +91,8 @@ local configurations = function(opts)
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
-      actions.goto_file_selection_edit:replace(function()
-        local selection = actions.get_selected_entry(prompt_bufnr)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
         dap.run(selection.value)
@@ -208,8 +209,8 @@ local frames = function(opts)
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
-      actions.goto_file_selection_edit:replace(function()
-        local entry = actions.get_selected_entry(prompt_bufnr)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
         session:_frame_set(entry.value)
@@ -239,8 +240,8 @@ return telescope.register_extension {
         },
         sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr)
-          actions.goto_file_selection_edit:replace(function()
-            local selection = actions.get_selected_entry(prompt_bufnr)
+          actions.select_default:replace(function()
+            local selection = action_state.get_selected_entry()
             actions.close(prompt_bufnr)
 
             cb(selection.value)

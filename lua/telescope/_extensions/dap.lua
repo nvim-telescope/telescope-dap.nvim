@@ -213,7 +213,7 @@ local frames = function(opts)
         local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
-        session:_frame_set(entry.value)
+        session:_frame_set(selection.value)
       end)
 
       return true

@@ -169,7 +169,7 @@ local variables = function(opts)
         return {
           value = entry,
           ordinal = string.format('%s(%s) = %s', entry.name, entry.type, entry.value),
-          display = string.format('%s(%s) = %s', entry.name, entry.type, entry.value),
+          display = string.format('%s(%s) = %s', entry.name, entry.type, entry.value:gsub('\n', '')),
           filename = frame.source.path,
           lnum = entry.lnum or 1,
           col = entry.col or 0,

@@ -201,7 +201,7 @@ local frames = function(opts)
           value = frame,
           display = frame.name,
           ordinal = frame.name,
-          filename = frame.source.path,
+          filename = frame.source and frame.source.path or '',
           lnum = frame.line or 1,
           col = frame.column or 0,
         }

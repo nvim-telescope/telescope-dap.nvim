@@ -39,3 +39,16 @@ require'telescope'.extensions.dap.list_breakpoints{}
 require'telescope'.extensions.dap.variables{}
 require'telescope'.extensions.dap.frames{}
 ```
+
+## Launch.json support
+
+`Telescope dap configurations` supports `launch.json` (as in VSCode). Any
+configurations loaded from a `launch.json` file will be appended to the list
+obtained from `dap.configurations`. See [VSCode
+docs](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations)
+for `launch.json` format.
+
+```viml
+:Telescope dap configuration load_from_file=true " load configs from .vscode/launch.json
+:Telescope dap configuration load_from_file=path/to/launch.json " load configs from path/to/launch.json
+```

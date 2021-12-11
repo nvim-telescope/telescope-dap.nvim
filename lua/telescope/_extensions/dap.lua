@@ -69,6 +69,20 @@ local configurations = function(opts)
     end
   end
 
+  if opts.load_from_file then
+    local path = type(opts.load_from_file) == 'string' and
+      opts.load_from_file or
+      '.vscode/launch.json'
+    if vim.fn.filereadable(path) == 1 then
+      local file = vim.fn.readfile(path)
+      local json = vim.fn.json_decode(file)
+      assert(json.configurations, "launch.json must have a 'configurations' key")
+      for _, config in ipairs(json.configurations) do
+        table.insert(results, config)
+      end
+    end
+  end
+
   if vim.tbl_isempty(results) then
     return
   end

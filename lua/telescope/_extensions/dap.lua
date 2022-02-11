@@ -95,7 +95,11 @@ local configurations = function(opts)
         local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
-        dap.run(selection.value)
+        if selection.value.request == "custom" then
+          vim.cmd(selection.value.command)
+        else
+          dap.run(selection.value)
+        end
       end)
 
       return true

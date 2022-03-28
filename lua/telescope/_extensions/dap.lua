@@ -9,6 +9,7 @@ if not has_dap then
 end
 
 local actions      = require'telescope.actions'
+local actions_set  = require("telescope.actions.set")
 local action_state = require'telescope.actions.state'
 local builtin      = require'telescope.builtin'
 local finders      = require'telescope.finders'
@@ -47,7 +48,7 @@ local commands = function(opts)
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
-      actions.select_default:replace(function()
+      actions_set.select:replace(function()
         local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
@@ -91,7 +92,7 @@ local configurations = function(opts)
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
-      actions.select_default:replace(function()
+      actions_set.select:replace(function()
         local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
@@ -209,7 +210,7 @@ local frames = function(opts)
     },
     sorter = conf.generic_sorter(opts),
     attach_mappings = function(prompt_bufnr)
-      actions.select_default:replace(function()
+      actions_set.select:replace(function()
         local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
@@ -240,7 +241,7 @@ return telescope.register_extension {
         },
         sorter = conf.generic_sorter(opts),
         attach_mappings = function(prompt_bufnr)
-          actions.select_default:replace(function()
+          actions_set.select:replace(function()
             local selection = action_state.get_selected_entry()
             actions.close(prompt_bufnr)
 

@@ -16,6 +16,8 @@ local pickers      = require'telescope.pickers'
 local previewers   = require'telescope.previewers'
 local conf = require('telescope.config').values
 
+local dap_run = require('dap').run
+
 local function get_url_buf(url)
   local buf = -1
   if url then
@@ -59,6 +61,73 @@ local commands = function(opts)
   }):find()
 end
 
+local function get_processes()
+    local output = vim.fn.system({'ps', 'a'})
+    local lines = vim.split(output, '\n')
+    local processes = {}
+    for _, line in pairs(lines) do
+        -- output format
+        --    " 107021 pts/4    Ss     0:00 /bin/zsh <args>"
+        local parts = vim.fn.split(vim.fn.trim(line), ' \\+')
+        local pid = parts[1]
+
+        if pid and pid ~= 'PID' then
+            pid = tonumber(pid)
+            if pid ~= vim.fn.getpid() then
+                local process = {
+                    pid = pid,
+                    name = table.concat({unpack(parts, 5)}, ' '),
+                }
+
+                table.insert(processes, process)
+            end
+        end
+    end
+
+    return processes
+end
+
+local function maybe_pick_process_and_run(config, dap_opts)
+    if type(config) ~= 'table' or config.processId ~= require('dap.utils').pick_process then
+        dap_run(config, dap_opts)
+        return
+    end
+
+    local opts = {}
+    pickers.new(opts, {
+        prompt_title = "Pick process",
+        finder = finders.new_table {
+            results = get_processes(),
+            entry_maker = function(entry)
+                return {
+                    value = entry,
+                    ordinal = entry.pid .. " " .. entry.name,
+                    display = string.format("% 6d  %s", entry.pid, entry.name),
+                }
+            end
+        },
+        sorter = conf.generic_sorter(opts),
+        attach_mappings = function(prompt_bufnr)
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                local process = selection.value
+
+                local config_clone = {}
+                for k,v in pairs(config) do
+                    config_clone[k] = v
+                end
+
+                config_clone.processId = process.pid
+
+                dap_run(config_clone, dap_opts)
+            end)
+
+            return true
+        end,
+    }):find()
+end
+
 local configurations = function(opts)
   opts = opts or {}
 
@@ -95,7 +164,7 @@ local configurations = function(opts)
         local selection = action_state.get_selected_entry()
         actions.close(prompt_bufnr)
 
-        dap.run(selection.value)
+        maybe_pick_process_and_run(selection.value)
       end)
 
       return true
@@ -224,6 +293,8 @@ end
 
 return telescope.register_extension {
   setup = function()
+    require('dap').run = maybe_pick_process_and_run
+
     require('dap.ui').pick_one = function(items, prompt, label_fn, cb)
       local opts = {}
       pickers.new(opts, {

@@ -131,7 +131,6 @@ local variables = function(opts)
   local buf = get_url_buf(frame and frame.source and frame.source.path)
 
   local require_ok, locals = pcall(require, "nvim-treesitter.locals")
-  local _, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
   local _, utils = pcall(require, "nvim-treesitter.utils")
   local _, parsers = pcall(require, "nvim-treesitter.parsers")
   local _, queries = pcall(require, "nvim-treesitter.query")
@@ -144,7 +143,7 @@ local variables = function(opts)
       for _, d in pairs(definition_nodes) do
         local node = utils.get_at_path(d, 'var.node') or utils.get_at_path(d, 'parameter.node')
         if node then
-          local name = ts_utils.get_node_text(node, buf)[1]
+          local name = vim.treesitter.query.get_node_text(node, buf)[1]
 
           if variables[name] then
             local lnum, col = node:start()

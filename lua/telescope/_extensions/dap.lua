@@ -198,7 +198,12 @@ local frames = function(opts)
       entry_maker = function(frame)
         return {
           value = frame,
-          display = frame.name,
+          display = function ()
+            if frame.presentationHint == 'subtle' or not frame.source then
+              return frame.name, { { {0, #frame.name}, 'NvimDapSubtleFrame' } }
+            end
+            return frame.name
+          end,
           ordinal = frame.name,
           filename = frame.source and frame.source.path or '',
           lnum = frame.line or 1,
@@ -223,6 +228,8 @@ end
 
 return telescope.register_extension {
   setup = function()
+    vim.cmd [[ highlight default link NvimDapSubtleFrame Comment ]]
+
     require('dap.ui').pick_one = function(items, prompt, label_fn, cb)
       local opts = {}
       pickers.new(opts, {

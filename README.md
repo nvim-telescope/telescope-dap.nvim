@@ -39,3 +39,7 @@ require'telescope'.extensions.dap.list_breakpoints{}
 require'telescope'.extensions.dap.variables{}
 require'telescope'.extensions.dap.frames{}
 ```
+
+## Customize Colors
+
+Stack frames coming from external code (libraries) are highlighted with the "NvimDapSubtleFrame" highlight group (by default linked to "Comment").

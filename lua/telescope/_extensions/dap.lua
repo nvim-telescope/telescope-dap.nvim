@@ -147,7 +147,8 @@ local variables = function(opts)
       for _, d in pairs(definition_nodes) do
         local node = utils.get_at_path(d, 'var.node') or utils.get_at_path(d, 'parameter.node')
         if node then
-          local name = vim.treesitter.query.get_node_text(node, buf)[1]
+          local get_node_text = vim.treesitter.get_node_text or vim.treesitter.query.get_node_text
+          local name = get_node_text(node, buf)[1]
 
           if variables[name] then
             local lnum, col = node:start()

@@ -20,6 +20,19 @@ require('telescope').load_extension('dap')
 
 somewhere after your require('telescope').setup() call.
 
+If you want to disable overwriting the `dap` internal ui, for example because you already use a different plugin to overwrite `vim.ui.select`,
+you can do so by configuring the extension as part of the telescope setup.
+
+```lua
+require('telescope').setup({
+  extensions = {
+    dap = {
+      overwrite_pick_one = false
+    }
+  }
+})
+```
+
 ## Available commands
 
 ```viml

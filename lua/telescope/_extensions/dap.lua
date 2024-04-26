@@ -237,7 +237,7 @@ return telescope.register_extension {
   setup = function(ext_config)
     vim.cmd [[ highlight default link NvimDapSubtleFrame Comment ]]
 
-    if not vim.F.if_nil(ext_config.overwrite_pick_one, false) then
+    if not vim.F.if_nil(ext_config.overwrite_pick_one, true) then
       return
     end
 
